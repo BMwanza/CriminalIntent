@@ -55,7 +55,7 @@ public class CrimeLab {
         boolean found = false;
         for(int i = 0; i < mCrimes.size() && !found; i++)
         {
-            if(mCrimes.get(i).getId() == cID)
+            if(mCrimes.get(i).getId().equals(cID))
             {
                 found = true;
                 crime = mCrimes.get(i);

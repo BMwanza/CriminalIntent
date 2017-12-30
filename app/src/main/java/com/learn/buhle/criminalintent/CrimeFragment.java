@@ -12,6 +12,8 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 
+import java.util.UUID;
+
 /**
  * Created by BMwanza on 12/24/2017.
  */
@@ -22,13 +24,30 @@ public class CrimeFragment extends Fragment {
     private Button mDateButton;
     private CheckBox mCheckBox;
 
+    private static final String ARG_CRIME_ID = "crime_id";
+
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        mCrime = new Crime();
+
+        //Get the UUID of the crime that was stored in the Intent
+        UUID crimeID = (UUID) getArguments().getSerializable(ARG_CRIME_ID);
+        mCrime = CrimeLab.get(getActivity()).getCrime(crimeID);
+
 
         //Notice no inflation
+    }
+
+
+    public static CrimeFragment newInstance(UUID crimeID)
+    {
+        Bundle args = new Bundle();
+        args.putSerializable(ARG_CRIME_ID, crimeID);
+
+        CrimeFragment crimeFrag = new CrimeFragment();
+        crimeFrag.setArguments(args); //Attatch the Arguments to the Fragment
+        return crimeFrag;
     }
     /*
     This is where we inflate the layout view and retrun it to the host
@@ -42,6 +61,8 @@ public class CrimeFragment extends Fragment {
         mTextField = (EditText) view.findViewById(R.id.crime_title);
         mDateButton = (Button) view.findViewById(R.id.crime_date);
         mCheckBox = (CheckBox) view.findViewById(R.id.crime_solved);
+
+        mTextField.setText(mCrime.getTitle());
 
         mTextField.addTextChangedListener(new TextWatcher() {
             @Override
@@ -64,7 +85,7 @@ public class CrimeFragment extends Fragment {
         mDateButton.setText(mCrime.getDateCommited().toString());
         mDateButton.setEnabled(false); //Can't be pressed
 
-
+        mCheckBox.setChecked(mCrime.isSolved());
         mCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {

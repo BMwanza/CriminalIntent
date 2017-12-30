@@ -1,5 +1,6 @@
 package com.learn.buhle.criminalintent;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -9,7 +10,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -20,6 +20,7 @@ import java.util.ArrayList;
 public class CrimeListFragment extends Fragment {
     private RecyclerView mCrimeRecycleView;
     private CrimeAdapter mCrimeAdapter;
+    private int mChangedPos; //The specific position changed
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -30,21 +31,39 @@ public class CrimeListFragment extends Fragment {
         mCrimeRecycleView = (RecyclerView) view.findViewById(R.id.crime_recycler_view);
         mCrimeRecycleView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        updateUI();
+        updateUI(mChangedPos);
         return view;
     }
 
     /*
+    Override the onResume function such that it will update the List in the event of data being changed.
+     */
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+        updateUI(mChangedPos);
+    }
+
+
+
+    /*
     Links the Recycle View and the adapter
      */
-    private void updateUI()
+    private void updateUI(int changed)
     {
         CrimeLab crimeLab = CrimeLab.get(getActivity());
         ArrayList<Crime> crimes = crimeLab.getCrimes();
 
-        mCrimeAdapter = new CrimeAdapter(crimes);
-        mCrimeRecycleView.setAdapter(mCrimeAdapter);
-
+        if(mCrimeAdapter == null)
+        {
+            mCrimeAdapter = new CrimeAdapter(crimes);
+            mCrimeRecycleView.setAdapter(mCrimeAdapter);
+        }
+        else //Tell the adapter that a change has been made
+        {
+            mCrimeAdapter.notifyItemChanged(changed);
+        }
     }
 
     //Private ViewHolder Class
@@ -57,6 +76,7 @@ public class CrimeListFragment extends Fragment {
         public CheckBox mSolvedCheckBox;
         public TextView mTitleTextView;
         public TextView mCrimeDateTextView;
+        private Crime mCrime;
 
         public CrimeHolder(View itemView)
         {
@@ -71,12 +91,15 @@ public class CrimeListFragment extends Fragment {
         @Override
         public void onClick(View v)
         {
-            Toast.makeText(getActivity(), mTitleTextView.getText() + " pressed!", Toast.LENGTH_SHORT).show();
+            mChangedPos = getAdapterPosition(); //What was the position changed
+            Intent intent = CrimeActivity.newIntent(getActivity(), mCrime.getId());
+            startActivity(intent);
         }
 
         //update The Text view
         public void bindCrime(Crime crime)
         {
+            mCrime = crime;
             mSolvedCheckBox.setChecked(crime.isSolved());
             mTitleTextView.setText(crime.getTitle());
             mCrimeDateTextView.setText(crime.getDateCommited().toString());
