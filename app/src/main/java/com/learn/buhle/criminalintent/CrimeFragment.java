@@ -45,6 +45,14 @@ public class CrimeFragment extends Fragment {
         //Notice no inflation
     }
 
+    @Override
+    public void onPause()
+    {
+        super.onPause();
+        CrimeLab.get(getActivity()).updateCrime(mCrime);
+
+    }
+
 
     public static CrimeFragment newInstance(UUID crimeID)
     {

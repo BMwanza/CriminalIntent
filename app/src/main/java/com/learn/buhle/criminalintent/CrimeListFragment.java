@@ -113,6 +113,7 @@ public class CrimeListFragment extends Fragment {
         }
         else //Tell the adapter that a change has been made
         {
+            mCrimeAdapter.setCrimes(crimes);
             mCrimeAdapter.notifyItemChanged(changed);
         }
         updateSubtitle();
@@ -182,6 +183,12 @@ public class CrimeListFragment extends Fragment {
     {
         private ArrayList<Crime> mCrimes;
         public CrimeAdapter(ArrayList<Crime> crimes)
+        {
+            mCrimes = crimes;
+        }
+
+
+        public void setCrimes(ArrayList<Crime> crimes)
         {
             mCrimes = crimes;
         }

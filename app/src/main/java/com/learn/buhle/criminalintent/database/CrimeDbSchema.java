@@ -5,6 +5,9 @@ package com.learn.buhle.criminalintent.database;
  */
 
 public class CrimeDbSchema {
+    /*
+    DEFINES THE SCHEMA OF THE DATABASE
+     */
 
     /*
     Why do we do it like this?

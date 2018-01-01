@@ -1,9 +1,13 @@
 package com.learn.buhle.criminalintent;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.learn.buhle.criminalintent.database.CrimeBaseHelper;
+import com.learn.buhle.criminalintent.database.CrimeCursorWrapper;
+import com.learn.buhle.criminalintent.database.CrimeDbSchema.CrimeTable;
 
 import java.util.ArrayList;
 import java.util.UUID;
@@ -28,6 +32,10 @@ public class CrimeLab {
     {
 
 //        mCrimes = new ArrayList<Crime>();
+
+        /*
+        THIS IS WHAT SETS UP THE DATABASE
+         */
         mContext = context.getApplicationContext();
         mDatabase = new CrimeBaseHelper(mContext).getWritableDatabase();
 
@@ -46,31 +54,89 @@ public class CrimeLab {
 
     public ArrayList<Crime> getCrimes()
     {
-//        return mCrimes;
-        return new ArrayList<Crime>();
+        ArrayList<Crime> crimes = new ArrayList<Crime>();
 
+        CrimeCursorWrapper cursor = queryCrimes(null, null);
+
+        //Cursor works like a file reader
+        try
+        {
+            cursor.moveToFirst();
+            while(!cursor.isAfterLast())
+            {
+                crimes.add(cursor.getCrime());
+                cursor.moveToNext();
+            }
+        }
+        finally
+        {
+            cursor.close();
+        }
+        return crimes;
     }
 
     public void addCrime(Crime newCrime)
     {
-//        mCrimes.add(newCrime);
+        ContentValues values = getContentValues(newCrime);
+        mDatabase.insert(CrimeTable.NAME, null, values);
     }
 
 
     public Crime getCrime(UUID cID)
     {
-//        Crime crime = null;
-//        boolean found = false;
-//        for(int i = 0; i < mCrimes.size() && !found; i++)
-//        {
-//            if(mCrimes.get(i).getId().equals(cID))
-//            {
-//                found = true;
-//                crime = mCrimes.get(i);
-//            }
-//        }
+        CrimeCursorWrapper cursorWrapper = queryCrimes(CrimeTable.Cols.UUID + " = ?", new String[] {cID.toString()});
 
-        return null;
+        try
+        {
+            if(cursorWrapper.getCount() == 0)
+            {
+                return null;
+            }
+
+            cursorWrapper.moveToFirst();
+            return cursorWrapper.getCrime();
+        }
+        finally {
+            cursorWrapper.close();
+        }
+
+    }
+
+    private static ContentValues getContentValues(Crime crime)
+    {
+        ContentValues values = new ContentValues();
+        values.put(CrimeTable.Cols.UUID, crime.getId().toString());
+        values.put(CrimeTable.Cols.TITLE, crime.getTitle());
+        values.put(CrimeTable.Cols.DATE, crime.getDateCommited().getTime());
+        values.put(CrimeTable.Cols.SOLVED, crime.isSolved() ? 1:0);
+
+        return values;
+    }
+
+    public void updateCrime(Crime crime)
+    {
+        String uuid = crime.getId().toString();
+        ContentValues values = getContentValues(crime);
+
+        mDatabase.update(CrimeTable.NAME, values, CrimeTable.Cols.UUID + " = ?", new String[] {uuid});
+        //The question mark is oddd but it is for safety
+    }
+
+    private CrimeCursorWrapper queryCrimes(String whereClause, String[] whereArgs)
+    {
+        /*
+        This is the structure of a query, for simplicity, We just want to select from all rows
+         */
+        Cursor cursor = mDatabase.query(CrimeTable.NAME, //FROM
+                null, //SELECT ROWS
+                whereClause, //WHERE
+                whereArgs, //Conditions
+                null, //Group By
+                null, //Having
+                null, //Order By
+                null); //Limit
+
+        return new CrimeCursorWrapper(cursor);
     }
 
 
