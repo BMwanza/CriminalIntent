@@ -1,6 +1,9 @@
 package com.learn.buhle.criminalintent;
 
 import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
+
+import com.learn.buhle.criminalintent.database.CrimeBaseHelper;
 
 import java.util.ArrayList;
 import java.util.UUID;
@@ -16,19 +19,18 @@ This is where we will store all of the crimes in our system
 public class CrimeLab {
 
     private static CrimeLab sCrimeLab;
-    private ArrayList<Crime> mCrimes;
+//    private ArrayList<Crime> mCrimes;
+    private Context mContext;
+    private SQLiteDatabase mDatabase;
+
     //Private constructor
     private CrimeLab(Context context)
     {
-        Crime crime;
-        mCrimes = new ArrayList<Crime>();
-        for(int i = 0; i < 100; i++)
-        {
-            crime = new Crime();
-            crime.setTitle("Crime # " + i);
-            crime.setSolved(i % 2 == 0);
-            mCrimes.add(crime);
-        }
+
+//        mCrimes = new ArrayList<Crime>();
+        mContext = context.getApplicationContext();
+        mDatabase = new CrimeBaseHelper(mContext).getWritableDatabase();
+
 
     }
 
@@ -44,25 +46,31 @@ public class CrimeLab {
 
     public ArrayList<Crime> getCrimes()
     {
-        return mCrimes;
+//        return mCrimes;
+        return new ArrayList<Crime>();
 
+    }
+
+    public void addCrime(Crime newCrime)
+    {
+//        mCrimes.add(newCrime);
     }
 
 
     public Crime getCrime(UUID cID)
     {
-        Crime crime = null;
-        boolean found = false;
-        for(int i = 0; i < mCrimes.size() && !found; i++)
-        {
-            if(mCrimes.get(i).getId().equals(cID))
-            {
-                found = true;
-                crime = mCrimes.get(i);
-            }
-        }
+//        Crime crime = null;
+//        boolean found = false;
+//        for(int i = 0; i < mCrimes.size() && !found; i++)
+//        {
+//            if(mCrimes.get(i).getId().equals(cID))
+//            {
+//                found = true;
+//                crime = mCrimes.get(i);
+//            }
+//        }
 
-        return crime;
+        return null;
     }
 
 

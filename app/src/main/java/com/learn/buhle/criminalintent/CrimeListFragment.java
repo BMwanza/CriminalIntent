@@ -3,9 +3,13 @@ package com.learn.buhle.criminalintent;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
@@ -21,6 +25,14 @@ public class CrimeListFragment extends Fragment {
     private RecyclerView mCrimeRecycleView;
     private CrimeAdapter mCrimeAdapter;
     private int mChangedPos; //The specific position changed
+    private boolean mSubTitleVisible;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState)
+    {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true); //Tell the The Fragment Manager that my fragment to recieve the onCreateOptionMenu call
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -35,6 +47,44 @@ public class CrimeListFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater)
+    {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.fragment_crime_list, menu);
+
+        MenuItem menuItem = menu.findItem(R.id.menu_item_subtitle);
+        if(mSubTitleVisible)
+        {
+            menuItem.setTitle(R.string.hide_subtitle);
+        }
+        else
+        {
+            menuItem.setTitle(R.string.show_subtitle);
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+        if(item.getItemId() == R.id.menu_item_new_crime)
+        {
+            Crime crime = new Crime();
+            CrimeLab.get(getActivity()).addCrime(crime);
+            Intent intent = CrimePagerActivity.newIntent(getActivity(), crime.getId());
+            startActivity(intent);
+
+        }
+        else if(item.getItemId() == R.id.menu_item_subtitle)
+        {
+            mSubTitleVisible = !mSubTitleVisible; //Switch the True value
+            getActivity().invalidateOptionsMenu();
+            updateSubtitle();
+        }
+
+        return true;
+    }
+
     /*
     Override the onResume function such that it will update the List in the event of data being changed.
      */
@@ -43,6 +93,7 @@ public class CrimeListFragment extends Fragment {
     {
         super.onResume();
         updateUI(mChangedPos);
+
     }
 
 
@@ -57,13 +108,30 @@ public class CrimeListFragment extends Fragment {
 
         if(mCrimeAdapter == null)
         {
-            mCrimeAdapter = new CrimeAdapter(crimes);
+            mCrimeAdapter = new CrimeAdapter(crimes); //Set the ArrayList of Crimes to the adapter
             mCrimeRecycleView.setAdapter(mCrimeAdapter);
         }
         else //Tell the adapter that a change has been made
         {
             mCrimeAdapter.notifyItemChanged(changed);
         }
+        updateSubtitle();
+    }
+
+    private void updateSubtitle()
+    {
+        //Get the number of Crimes in our list
+        //Also get the String format from our Strings resource
+        int numCrimes = CrimeLab.get(getActivity()).getCrimes().size();
+        String subtitle = getString(R.string.subtitle_format, numCrimes);
+
+        //The hosting activity is casted to an appCompat activity s.t we can use the GetSupportActionBar interface
+        if (!mSubTitleVisible)
+        {
+            subtitle = null;
+        }
+        AppCompatActivity activity = (AppCompatActivity) getActivity();
+        activity.getSupportActionBar().setSubtitle(subtitle);
     }
 
     //Private ViewHolder Class
